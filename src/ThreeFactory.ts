@@ -100,7 +100,7 @@ export class ThreeFactory extends BaseFactory {
     /**
      * @private
      */
-    public static release(object: any, type: string): void {
+    public static release(object: THREE.Vector3 | THREE.Face3 | THREE.Vector2, type: string): void {
         let pool: Array<any>;
         if (type in ThreeFactory._pools) {
             pool = ThreeFactory._pools[type];
@@ -113,7 +113,8 @@ export class ThreeFactory extends BaseFactory {
             pool.push(object);
         }
         else {
-            throw new Error();
+            // console.log(pool, object, type)
+            // throw new Error();
         }
     }
     /**

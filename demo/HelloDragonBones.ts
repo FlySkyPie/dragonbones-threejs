@@ -39,13 +39,13 @@ export class HelloDragonBones extends BaseDemo {
         factory.parseTextureAtlasData(this._loadedResources[texJson],
             this._loadedResources[texPng]);
 
-        const armatureDisplay = factory.buildArmatureDisplay("move", "attack");
+        const armatureDisplay = factory.buildArmatureDisplay("mecha_1004d");
 
         if (armatureDisplay === null) {
             return;
         }
 
-        armatureDisplay.animation.play("wait");
+        armatureDisplay.animation.play("walk");
 
         armatureDisplay.position.setX(0.0);
         armatureDisplay.position.setY(200.0);
