@@ -153,6 +153,7 @@ export class ThreeFactory extends BaseFactory {
             const material = new THREE.MeshBasicMaterial();
             material.side = THREE.DoubleSide;
             material.transparent = true;
+            material.alphaTest = 0.5
 
             if (textureAtlas !== null) {
                 material.map = textureAtlas;
