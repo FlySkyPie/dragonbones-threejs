@@ -321,18 +321,19 @@ export class ThreeSlot extends Slot {
                     const uvs = new Array<THREE.Vector2>();
 
                     for (let i = 0, l = vertexCount; i < l; ++i) {
+                        let iD = i * 2
                         const vertex = ThreeFactory.create(ThreeFactory.POOL_TYPE_VECTOR3) as THREE.Vector3;
                         const uv = ThreeFactory.create(ThreeFactory.POOL_TYPE_VECTOR2) as THREE.Vector2;
 
                         vertices.push(vertex);
                         uvs.push(uv);
                         uv.set(
-                            floatArray[uvOffset + i],
-                            floatArray[uvOffset + i + 1]
+                            floatArray[uvOffset + iD],
+                            floatArray[uvOffset + iD + 1]
                         );
                         vertex.set(
-                            floatArray[vertexOffset + i] * scale,
-                            floatArray[vertexOffset + i + 1] * scale,
+                            floatArray[vertexOffset + iD] * scale,
+                            floatArray[vertexOffset + iD + 1] * scale,
                             0.0
                         );
 
@@ -514,6 +515,7 @@ export class ThreeSlot extends Slot {
                     0.0
                 );
             }
+            geometry.verticesNeedUpdate = true;
         }
         else if (hasDeform) {
             const isSurface = (this._parent as any)._boneData.type !== BoneType.Bone;
@@ -530,7 +532,7 @@ export class ThreeSlot extends Slot {
             for (let i = 0, l = vertexCount * 2; i < l; i += 2) {
                 const x = floatArray[vertexOffset + i] * scale + deformVertices[i];
                 const y = floatArray[vertexOffset + i + 1] * scale + deformVertices[i + 1];
-                const vertex = vertices[i];
+                const vertex = vertices[i / 2];
 
                 if (isSurface) {
                     // @ts-ignore
@@ -549,6 +551,7 @@ export class ThreeSlot extends Slot {
                     );
                 }
             }
+            geometry.verticesNeedUpdate = true;
         }
     }
 

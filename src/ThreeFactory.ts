@@ -177,8 +177,6 @@ export class ThreeFactory extends BaseFactory {
         const geometry = new THREE.Geometry();
         const rawDisplay = new THREE.Mesh(geometry, ThreeFactory._emptyMaterial);
 
-        console.log(slot)
-
         slot.init(
             slotData, armature,
             rawDisplay, rawDisplay
