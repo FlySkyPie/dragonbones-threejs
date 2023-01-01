@@ -10,6 +10,9 @@ export default defineConfig(({ command }) => {
           "@dragonbones-threejs": path.resolve(__dirname, "./src"),
         },
       },
+      define: {
+        THREE: '{}',
+      },
     };
   }
 

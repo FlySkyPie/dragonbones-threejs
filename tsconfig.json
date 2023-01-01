@@ -7,6 +7,7 @@
       "ESNext",
       "DOM"
     ],
+    "allowJs": true,
     "moduleResolution": "Node",
     "strict": true,
     "resolveJsonModule": true,

@@ -2,9 +2,9 @@ import { ThreeFactory } from '@dragonbones-threejs';
 
 import { BaseDemo } from './BaseDemo';
 
-import skeJson from './assets/mecha_1004d_ske.json?url';
-import texJson from './assets/mecha_1004d_tex.json?url';
-import texPng from './assets/mecha_1004d_tex.png';
+import skeJson from '../assets/mecha_1004d_ske.json?url';
+import texJson from '../assets/mecha_1004d_tex.json?url';
+import texPng from '../assets/mecha_1004d_tex.png';
 
 /**
  * How to use
