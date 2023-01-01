@@ -1,4 +1,4 @@
-import * as THREE from 'three';
+import { Group } from 'three';
 import {
     Armature, DragonBones, EventObject, EventStringType, IArmatureProxy, Animation
 } from '@flyskypie/dragonbones-js';
@@ -6,7 +6,7 @@ import {
 /**
  * @inheritDoc
  */
-export class ThreeArmatureDisplay extends THREE.Group implements IArmatureProxy {
+export class ThreeArmatureDisplay extends Group implements IArmatureProxy {
     /**
      * @private
      */
@@ -40,7 +40,7 @@ export class ThreeArmatureDisplay extends THREE.Group implements IArmatureProxy 
             this._debugDraw = drawed;
             if (this._debugDraw) {
                 if (this._debugDrawer === null) {
-                    this._debugDrawer = new THREE.Group();
+                    this._debugDrawer = new Group();
                 }
 
                 this.add(this._debugDrawer);

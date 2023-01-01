@@ -1,6 +1,6 @@
 {
   "name": "@flyskypie/dragonbones-threejs",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "main": "./dist/dragonbones-threejs.umd.cjs",
   "module": "./dist/dragonbones-threejs.js",
   "exports": {

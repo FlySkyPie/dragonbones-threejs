@@ -1,4 +1,4 @@
-import * as THREE from 'three';
+import { AdditiveBlending, MeshBasicMaterial } from 'three';
 import {
     Slot, GeometryData, DisplayFrame, BinaryOffset, BlendMode, BoneType
 } from '@flyskypie/dragonbones-js';
@@ -207,11 +207,11 @@ export class ThreeSlot extends Slot {
 
             if (this._blendMode !== BlendMode.Normal) {
                 if (this._material === null) {
-                    this._material = new THREE.MeshBasicMaterial();
+                    this._material = new MeshBasicMaterial();
                     this._material.copy(textureAtlasData.material);
                 }
 
-                this._material.blending = THREE.AdditiveBlending;
+                this._material.blending = AdditiveBlending;
                 meshDisplay.material = this._material;
             }
             else {
@@ -248,7 +248,7 @@ export class ThreeSlot extends Slot {
                 this._colorTransform.blueMultiplier !== 1.0
             ) {
                 if (this._material === null) {
-                    this._material = new THREE.MeshBasicMaterial();
+                    this._material = new MeshBasicMaterial();
                     this._material.copy(textureAtlasData.material);
                 }
 

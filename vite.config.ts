@@ -22,6 +22,9 @@ export default defineConfig(({ command }) => {
         // formats: ['es'],
         fileName: 'dragonbones-threejs',
       },
+      rollupOptions: {
+        external: "three",
+      }
     },
     plugins: [dts({ rollupTypes: true })],
   };

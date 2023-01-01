@@ -1,4 +1,4 @@
-import * as THREE from 'three';
+import { DoubleSide, Face3, Geometry, Mesh, MeshBasicMaterial, Sprite, SpriteMaterial, Vector2, Vector3 } from 'three';
 import {
     Armature, DragonBones, BaseFactory, DataParser,
     BaseObject, BuildArmaturePackage, Slot, SlotData, TextureAtlasData
@@ -32,7 +32,7 @@ export class ThreeFactory extends BaseFactory {
      */
     public static readonly POOL_TYPE_FACE3: string = "POOL_TYPE_FACE3";
 
-    private static readonly _emptyMaterial: THREE.Material = new THREE.MeshBasicMaterial();
+    private static readonly _emptyMaterial: THREE.Material = new MeshBasicMaterial();
     private static readonly _pools: { [key: string]: Array<any> } = {};
     private static _dragonBonesInstance: DragonBones | null = null;
     private static _factory: ThreeFactory | null = null;
@@ -64,13 +64,13 @@ export class ThreeFactory extends BaseFactory {
 
         switch (type) {
             case ThreeFactory.POOL_TYPE_VECTOR2:
-                return new THREE.Vector2() as any;
+                return new Vector2() as any;
 
             case ThreeFactory.POOL_TYPE_VECTOR3:
-                return new THREE.Vector3() as any;
+                return new Vector3() as any;
 
             case ThreeFactory.POOL_TYPE_FACE3:
-                return new THREE.Face3(0, 1, 2) as any;
+                return new Face3(0, 1, 2) as any;
         }
 
         throw new Error();
@@ -127,8 +127,8 @@ export class ThreeFactory extends BaseFactory {
     protected _buildTextureAtlasData(textureAtlasData: ThreeTextureAtlasData | null, textureAtlas: THREE.Texture | null): TextureAtlasData {
         if (textureAtlasData) {
             textureAtlasData.renderTexture = textureAtlas;
-            const material = new THREE.MeshBasicMaterial();
-            material.side = THREE.DoubleSide;
+            const material = new MeshBasicMaterial();
+            material.side = DoubleSide;
             material.transparent = true;
             material.alphaTest = 0.5
 
@@ -174,8 +174,8 @@ export class ThreeFactory extends BaseFactory {
         armature;
 
         const slot = BaseObject.borrowObject(ThreeSlot);
-        const geometry = new THREE.Geometry();
-        const rawDisplay = new THREE.Mesh(geometry, ThreeFactory._emptyMaterial);
+        const geometry = new Geometry();
+        const rawDisplay = new Mesh(geometry, ThreeFactory._emptyMaterial);
 
         slot.init(
             slotData, armature,
@@ -241,8 +241,8 @@ export class ThreeFactory extends BaseFactory {
         if (textureData !== null) {
             const textureAtlasData = textureData.parent as ThreeTextureAtlasData;
             if (textureAtlasData.renderTexture !== null) {
-                const material = new THREE.SpriteMaterial({ map: textureAtlasData.renderTexture });
-                const sprite = new THREE.Sprite(material);
+                const material = new SpriteMaterial({ map: textureAtlasData.renderTexture });
+                const sprite = new Sprite(material);
 
                 return sprite;
             }
