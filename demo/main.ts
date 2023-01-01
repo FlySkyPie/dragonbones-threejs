@@ -1,4 +1,3 @@
 import { HelloDragonBones } from './HelloDragonBones';
 
-
-const _ = new HelloDragonBones();
+new HelloDragonBones();
