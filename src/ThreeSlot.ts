@@ -568,6 +568,7 @@ export class ThreeSlot extends Slot {
         displayMatrixElements[5] = globalTransformMatrix.d;
         displayMatrixElements[12] = globalTransformMatrix.tx;
         displayMatrixElements[13] = globalTransformMatrix.ty;
+        displayMatrixElements[14] = this._zOrder;
         this._renderDisplay.matrixWorldNeedsUpdate = true;
     }
 

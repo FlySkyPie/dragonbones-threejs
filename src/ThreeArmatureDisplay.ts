@@ -13,7 +13,7 @@ export class ThreeArmatureDisplay extends Group implements IArmatureProxy {
     public debugDraw: boolean = false;
     private _debugDraw: boolean = false;
     // private _disposeProxy: boolean = false;
-    private _armature: Armature = null as any;
+    private _armature: Armature | null = null;
     private _debugDrawer: THREE.Group | null = null;
     /**
      * @inheritDoc
@@ -28,7 +28,7 @@ export class ThreeArmatureDisplay extends Group implements IArmatureProxy {
         if (this._debugDrawer !== null) {
         }
 
-        this._armature = null as any;
+        this._armature = null;
         this._debugDrawer = null;
     }
     /**
@@ -95,12 +95,20 @@ export class ThreeArmatureDisplay extends Group implements IArmatureProxy {
      * @inheritDoc
      */
     public get armature(): Armature {
+        if (this._armature === null) {
+            throw new Error(`this._armature is null.`);
+        }
+
         return this._armature;
     }
     /**
      * @inheritDoc
      */
     public get animation(): Animation {
+        if (this._armature === null) {
+            throw new Error(`this._armature is null.`);
+        }
+
         return this._armature.animation;
     }
 
