@@ -12,7 +12,7 @@
   },
   "dependencies": {
     "three": "^0.89.0",
-    "dragonbones-js": "file:../dragonbones-js"
+    "@flyskypie/dragonbones-js": "^0.1.1"
   },
   "devDependencies": {
     "@types/three": "^0.89.0",
