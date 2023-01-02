@@ -128,6 +128,10 @@ export class ThreeSlot extends Slot {
             throw new Error(`this._renderDisplay is null.`);
         }
 
+        if (this._renderDisplay.parent === null) {
+            throw new Error(`this._renderDisplay.parent is null.`);
+        }
+
         this._renderDisplay.parent.remove(this._renderDisplay);
     }
 
