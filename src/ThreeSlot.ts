@@ -271,196 +271,225 @@ export class ThreeSlot extends Slot {
         const textureData = this._textureData as (ThreeTextureData | null);
         const meshDisplay = this._renderDisplay as THREE.Mesh;
 
-        if (textureData !== null) {
-            const textureAtlasData = textureData.parent as ThreeTextureAtlasData;
-            const renderTexture = textureAtlasData.renderTexture;
+        if (textureData === null) {
+            meshDisplay.visible = false;
+            meshDisplay.position.set(0.0, 0.0, meshDisplay.position.z);
+            return;
+        }
 
-            if (textureAtlasData.material === null) {
-                throw new Error(`textureAtlasData.material is null`);
+        const textureAtlasData = textureData.parent as ThreeTextureAtlasData;
+        const renderTexture = textureAtlasData.renderTexture;
+
+        if (textureAtlasData.material === null) {
+            throw new Error(`textureAtlasData.material is null`);
+        }
+
+        if (renderTexture === null) {
+            meshDisplay.visible = false;
+            meshDisplay.position.set(0.0, 0.0, meshDisplay.position.z);
+            return;
+        }
+
+        const textureAtlasWidth = textureAtlasData.width > 0.0 ? textureAtlasData.width : renderTexture.image.width;
+        const textureAtlasHeight = textureAtlasData.height > 0.0 ? textureAtlasData.height : renderTexture.image.height;
+        const textureX = textureData.region.x;
+        const textureY = textureData.region.y;
+        const textureWidth = textureData.region.width;
+        const textureHeight = textureData.region.height;
+        const geometry = new Geometry();
+
+        const position = meshDisplay.geometry.getAttribute('position');
+        if (position !== undefined) {
+            geometry.fromBufferGeometry(meshDisplay.geometry);
+        }
+
+        const vertices = geometry.vertices;
+        const faces = geometry.faces;
+        const faceVertexUVs = geometry.faceVertexUvs[0];
+
+        if (this._geometryData === null) {
+            console.log('_updateFrame A');
+            if (this._armature === null) {
+                throw new Error(`this._armature is null.`);
             }
 
-            if (renderTexture !== null) {
-                const textureAtlasWidth = textureAtlasData.width > 0.0 ? textureAtlasData.width : renderTexture.image.width;
-                const textureAtlasHeight = textureAtlasData.height > 0.0 ? textureAtlasData.height : renderTexture.image.height;
-                const textureX = textureData.region.x;
-                const textureY = textureData.region.y;
-                const textureWidth = textureData.region.width;
-                const textureHeight = textureData.region.height;
-                const geometry = new Geometry();
+            if (this._armature._armatureData === null) {
+                throw new Error(`this._armature._armatureData is null.`);
+            }
 
-                const position = meshDisplay.geometry.getAttribute('position');
-                if (position !== undefined) {
-                    geometry.fromBufferGeometry(meshDisplay.geometry);
+            const scale = textureAtlasData.scale * this._armature._armatureData.scale;
+            const rawUVs = ThreeSlot.RAW_UVS;
+            const rawIndices = ThreeSlot.RAW_INDICES;
+            const uvs = new Array<THREE.Vector2>();
+
+            for (let i = 0; i < 4; ++i) {
+                const iD = i * 2;
+                const vertex = ThreeFactory.create(ThreeFactory.POOL_TYPE_VECTOR3) as THREE.Vector3;
+                const uv = ThreeFactory.create(ThreeFactory.POOL_TYPE_VECTOR2) as THREE.Vector2;
+
+                vertices.push(vertex);
+                uvs.push(uv);
+                uv.set(
+                    rawUVs[iD],
+                    rawUVs[iD + 1]
+                );
+
+                vertex.set(
+                    (uv.x * textureWidth * scale) - this._pivotX,
+                    (uv.y * textureHeight * scale) - this._pivotY,
+                    0.0
+                );
+
+                if (textureData.rotated) {
+                    uv.set(
+                        (textureX + (1.0 - uv.y) * textureWidth) / textureAtlasWidth,
+                        (textureY + uv.x * textureHeight) / textureAtlasHeight
+                    );
                 }
-
-                const vertices = geometry.vertices;
-                const faces = geometry.faces;
-                const faceVertexUVs = geometry.faceVertexUvs[0];
-
-                if (this._geometryData !== null) { // Mesh.
-                    const data = this._geometryData.data;
-                    const intArray = (data as any).intArray;
-                    const floatArray = (data as any).floatArray;
-                    const vertexCount = intArray[this._geometryData.offset + BinaryOffset.GeometryVertexCount];
-                    const triangleCount = intArray[this._geometryData.offset + BinaryOffset.GeometryTriangleCount];
-                    let vertexOffset = intArray[this._geometryData.offset + BinaryOffset.GeometryFloatOffset];
-
-                    if (vertexOffset < 0) {
-                        vertexOffset += 65536; // Fixed out of bouds bug. 
-                    }
-
-                    const uvOffset = vertexOffset + vertexCount * 2;
-                    const indexOffset = this._geometryData.offset + BinaryOffset.GeometryVertexIndices;
-
-                    if (this._armature === null) {
-                        throw new Error(`this._armature is null.`);
-                    }
-
-                    if (this._armature._armatureData === null) {
-                        throw new Error(`this._armature._armatureData is null.`);
-                    }
-
-                    const scale = this._armature._armatureData.scale;
-                    const uvs = new Array<THREE.Vector2>();
-
-                    for (let i = 0, l = vertexCount; i < l; ++i) {
-                        let iD = i * 2
-                        const vertex = ThreeFactory.create(ThreeFactory.POOL_TYPE_VECTOR3) as THREE.Vector3;
-                        const uv = ThreeFactory.create(ThreeFactory.POOL_TYPE_VECTOR2) as THREE.Vector2;
-
-                        vertices.push(vertex);
-                        uvs.push(uv);
-                        uv.set(
-                            floatArray[uvOffset + iD],
-                            floatArray[uvOffset + iD + 1]
-                        );
-                        vertex.set(
-                            floatArray[vertexOffset + iD] * scale,
-                            floatArray[vertexOffset + iD + 1] * scale,
-                            0.0
-                        );
-
-                        if (textureData.rotated) {
-                            uv.set(
-                                (textureX + (1.0 - uv.y) * textureWidth) / textureAtlasWidth,
-                                (textureY + uv.x * textureHeight) / textureAtlasHeight
-                            );
-                        }
-                        else {
-                            uv.set(
-                                (textureX + uv.x * textureWidth) / textureAtlasWidth,
-                                1.0 - (textureY + uv.y * textureHeight) / textureAtlasHeight
-                            );
-                        }
-                    }
-
-                    for (let i = 0; i < triangleCount; ++i) {
-                        const iT = i * 3;
-                        const face3 = ThreeFactory.create(ThreeFactory.POOL_TYPE_FACE3) as Face3;
-                        const faceUVs: Array<THREE.Vector2> = [];
-
-                        faces.push(face3);
-                        faceVertexUVs.push(faceUVs);
-
-                        face3.a = intArray[indexOffset + iT];
-                        face3.b = intArray[indexOffset + iT + 1];
-                        face3.c = intArray[indexOffset + iT + 2];
-
-                        faceUVs[0] = uvs[face3.a];
-                        faceUVs[1] = uvs[face3.b];
-                        faceUVs[2] = uvs[face3.c];
-                    }
-
-                    meshDisplay.geometry = geometry.toBufferGeometry();
-                    meshDisplay.geometry.attributes.position.needsUpdate = true;
-                    meshDisplay.geometry.attributes.uv.needsUpdate = true;
-                    meshDisplay.geometry.computeBoundingBox();
-
-                    this._clearGeometry(geometry);
-                } else { // Normal texture.
-                    if (this._armature === null) {
-                        throw new Error(`this._armature is null.`);
-                    }
-
-                    if (this._armature._armatureData === null) {
-                        throw new Error(`this._armature._armatureData is null.`);
-                    }
-
-                    const scale = textureAtlasData.scale * this._armature._armatureData.scale;
-                    const rawUVs = ThreeSlot.RAW_UVS;
-                    const rawIndices = ThreeSlot.RAW_INDICES;
-                    const uvs = new Array<THREE.Vector2>();
-
-                    for (let i = 0; i < 4; ++i) {
-                        const iD = i * 2;
-                        const vertex = ThreeFactory.create(ThreeFactory.POOL_TYPE_VECTOR3) as THREE.Vector3;
-                        const uv = ThreeFactory.create(ThreeFactory.POOL_TYPE_VECTOR2) as THREE.Vector2;
-
-                        vertices.push(vertex);
-                        uvs.push(uv);
-                        uv.set(
-                            rawUVs[iD],
-                            rawUVs[iD + 1]
-                        );
-
-                        vertex.set(
-                            (uv.x * textureWidth * scale) - this._pivotX,
-                            (uv.y * textureHeight * scale) - this._pivotY,
-                            0.0
-                        );
-
-                        if (textureData.rotated) {
-                            uv.set(
-                                (textureX + (1.0 - uv.y) * textureWidth) / textureAtlasWidth,
-                                (textureY + uv.x * textureHeight) / textureAtlasHeight
-                            );
-                        }
-                        else {
-                            uv.set(
-                                (textureX + uv.x * textureWidth) / textureAtlasWidth,
-                                1.0 - (textureY + uv.y * textureHeight) / textureAtlasHeight
-                            );
-                        }
-                    }
-
-                    for (let i = 0; i < 2; ++i) {
-                        const iT = i * 3;
-                        const face3 = ThreeFactory.create(ThreeFactory.POOL_TYPE_FACE3) as Face3;
-                        const faceUVs: Array<THREE.Vector2> = [];
-
-                        faces.push(face3);
-                        faceVertexUVs.push(faceUVs);
-
-                        face3.a = rawIndices[iT];
-                        face3.b = rawIndices[iT + 1];
-                        face3.c = rawIndices[iT + 2];
-
-                        faceUVs[0] = uvs[face3.a];
-                        faceUVs[1] = uvs[face3.b];
-                        faceUVs[2] = uvs[face3.c];
-                    }
-
-                    meshDisplay.geometry = geometry.toBufferGeometry();
-                    meshDisplay.geometry.attributes.position.needsUpdate = true;
-                    meshDisplay.geometry.attributes.uv.needsUpdate = true;
-                    meshDisplay.geometry.computeBoundingBox();
+                else {
+                    uv.set(
+                        (textureX + uv.x * textureWidth) / textureAtlasWidth,
+                        1.0 - (textureY + uv.y * textureHeight) / textureAtlasHeight
+                    );
                 }
+            }
 
-                if (this._material !== null) {
-                    this._material.copy(textureAtlasData.material);
-                }
+            for (let i = 0; i < 2; ++i) {
+                const iT = i * 3;
+                const face3 = ThreeFactory.create(ThreeFactory.POOL_TYPE_FACE3) as Face3;
+                const faceUVs: Array<THREE.Vector2> = [];
 
-                meshDisplay.material = textureAtlasData.material;
-                this._visibleDirty = true;
+                faces.push(face3);
+                faceVertexUVs.push(faceUVs);
 
-                return;
+                face3.a = rawIndices[iT];
+                face3.b = rawIndices[iT + 1];
+                face3.c = rawIndices[iT + 2];
+
+                faceUVs[0] = uvs[face3.a];
+                faceUVs[1] = uvs[face3.b];
+                faceUVs[2] = uvs[face3.c];
+            }
+
+            meshDisplay.geometry = geometry.toBufferGeometry();
+            meshDisplay.geometry.attributes.position.needsUpdate = true;
+            meshDisplay.geometry.attributes.uv.needsUpdate = true;
+            meshDisplay.geometry.computeBoundingBox();
+
+            if (this._material !== null) {
+                this._material.copy(textureAtlasData.material);
+            }
+
+            meshDisplay.material = textureAtlasData.material;
+            this._visibleDirty = true;
+            return;
+        }
+        //return;
+        console.log('_updateFrame B');
+        // Mesh.
+        const data = this._geometryData.data;
+        if (data === null) {
+            throw new Error(`data is null.`);
+        }
+
+        const intArray = data.intArray;
+        const floatArray = data.floatArray;
+        if (intArray === null) {
+            throw new Error(`intArray is null.`);
+        }
+        if (floatArray === null) {
+            throw new Error(`floatArray is null.`);
+        }
+
+        const vertexCount = intArray[this._geometryData.offset + BinaryOffset.GeometryVertexCount];
+        const triangleCount = intArray[this._geometryData.offset + BinaryOffset.GeometryTriangleCount];
+        let vertexOffset = intArray[this._geometryData.offset + BinaryOffset.GeometryFloatOffset];
+
+        if (vertexOffset < 0) {
+            vertexOffset += 65536; // Fixed out of bouds bug. 
+        }
+
+        const uvOffset = vertexOffset + vertexCount * 2;
+        const indexOffset = this._geometryData.offset + BinaryOffset.GeometryVertexIndices;
+
+        if (this._armature === null) {
+            throw new Error(`this._armature is null.`);
+        }
+
+        if (this._armature._armatureData === null) {
+            throw new Error(`this._armature._armatureData is null.`);
+        }
+
+        const scale = this._armature._armatureData.scale;
+        const uvs = new Array<THREE.Vector2>();
+
+        for (let i = 0, l = vertexCount; i < l; ++i) {
+            let iD = i * 2
+            const vertex = ThreeFactory.create(ThreeFactory.POOL_TYPE_VECTOR3) as THREE.Vector3;
+            const uv = ThreeFactory.create(ThreeFactory.POOL_TYPE_VECTOR2) as THREE.Vector2;
+
+            vertices.push(vertex);
+            uvs.push(uv);
+            uv.set(
+                floatArray[uvOffset + iD],
+                floatArray[uvOffset + iD + 1]
+            );
+            vertex.set(
+                floatArray[vertexOffset + iD] * scale,
+                floatArray[vertexOffset + iD + 1] * scale,
+                0.0
+            );
+
+            if (textureData.rotated) {
+                uv.set(
+                    (textureX + (1.0 - uv.y) * textureWidth) / textureAtlasWidth,
+                    (textureY + uv.x * textureHeight) / textureAtlasHeight
+                );
+            }
+            else {
+                uv.set(
+                    (textureX + uv.x * textureWidth) / textureAtlasWidth,
+                    1.0 - (textureY + uv.y * textureHeight) / textureAtlasHeight
+                );
             }
         }
 
-        meshDisplay.visible = false;
-        meshDisplay.position.set(0.0, 0.0, meshDisplay.position.z);
+        for (let i = 0; i < triangleCount; ++i) {
+            const iT = i * 3;
+            const face3 = ThreeFactory.create(ThreeFactory.POOL_TYPE_FACE3) as Face3;
+            const faceUVs: Array<THREE.Vector2> = [];
+
+            faces.push(face3);
+            faceVertexUVs.push(faceUVs);
+
+            face3.a = intArray[indexOffset + iT];
+            face3.b = intArray[indexOffset + iT + 1];
+            face3.c = intArray[indexOffset + iT + 2];
+
+            faceUVs[0] = uvs[face3.a];
+            faceUVs[1] = uvs[face3.b];
+            faceUVs[2] = uvs[face3.c];
+        }
+
+        meshDisplay.geometry = geometry.toBufferGeometry();
+        meshDisplay.geometry.attributes.position.needsUpdate = true;
+        meshDisplay.geometry.attributes.uv.needsUpdate = true;
+        meshDisplay.geometry.computeBoundingBox();
+
+        this._clearGeometry(geometry);
+
+
+        if (this._material !== null) {
+            this._material.copy(textureAtlasData.material);
+        }
+
+        meshDisplay.material = textureAtlasData.material;
+        this._visibleDirty = true;
     }
 
+    /**
+     * @todo Re-implementement with BufferGeometry.
+     */
     protected _updateMesh(): void {
 
         if (this._armature === null) {
@@ -487,13 +516,22 @@ export class ThreeSlot extends Slot {
         }
 
         const vertices = geometry.vertices;
-        const faces = geometry.faces;
-
 
         if (weightData !== null) {
             const data = geometryData.data;
-            const intArray = (data as any).intArray;
-            const floatArray = (data as any).floatArray;
+            if (data === null) {
+                throw new Error(`data is null.`);
+            }
+
+            const intArray = data.intArray;
+            const floatArray = data.floatArray;
+            if (intArray === null) {
+                throw new Error(`intArray is null.`);
+            }
+            if (floatArray === null) {
+                throw new Error(`floatArray is null.`);
+            }
+
             const vertexCount = intArray[geometryData.offset + BinaryOffset.GeometryVertexCount];
             let weightFloatOffset = intArray[weightData.offset + BinaryOffset.WeigthFloatOffset];
 
@@ -503,11 +541,10 @@ export class ThreeSlot extends Slot {
 
             //const vertices = new Float32Array(meshDisplay.geometry.getAttribute("position").array);
 
-            for (
-                let i = 0, iB = weightData.offset + BinaryOffset.WeigthBoneIndices + bones.length, iV = weightFloatOffset, iF = 0;
-                i < vertexCount;
-                ++i
-            ) {
+            let iB = weightData.offset + BinaryOffset.WeigthBoneIndices + bones.length,
+                iV = weightFloatOffset,
+                iF = 0;
+            for (let i = 0; i < vertexCount; ++i) {
                 const boneCount = intArray[iB++];
                 let xG = 0.0, yG = 0.0;
 
@@ -536,6 +573,9 @@ export class ThreeSlot extends Slot {
                 // vertices[i + 2] = 0.0;
 
                 const vertex = vertices[i];
+                if (vertex === undefined) {
+                    continue;
+                }
                 vertex.set(
                     xG,
                     yG,
@@ -545,55 +585,64 @@ export class ThreeSlot extends Slot {
 
             meshDisplay.geometry = geometry.toBufferGeometry();
             meshDisplay.geometry.attributes.position.needsUpdate = true;
-            meshDisplay.geometry.attributes.uv.needsUpdate = true;
+            if (meshDisplay.geometry.attributes.uv) {
+                meshDisplay.geometry.attributes.uv.needsUpdate = true;
+            }
             meshDisplay.geometry.computeBoundingBox();
 
             //meshDisplay.geometry.setAttribute('position', new BufferAttribute(vertices, 3));
             //meshDisplay.geometry.attributes.position.needsUpdate = true;
             //meshDisplay.geometry.computeBoundingBox();
-        } else if (hasDeform) {
-            console.log("_updateMesh B")
-            const isSurface = (this._parent as any)._boneData.type !== BoneType.Bone;
-            const data = geometryData.data;
-            const intArray = (data as any).intArray;
-            const floatArray = (data as any).floatArray;
-            const vertexCount = intArray[geometryData.offset + BinaryOffset.GeometryVertexCount];
-            let vertexOffset = intArray[geometryData.offset + BinaryOffset.GeometryFloatOffset];
 
-            if (vertexOffset < 0) {
-                vertexOffset += 65536; // Fixed out of bounds bug. 
-            }
-
-            const geometry = new Geometry().fromBufferGeometry(meshDisplay.geometry);
-            const vertices = geometry.vertices;
-
-            for (let i = 0, l = vertexCount * 2; i < l; i += 2) {
-                const x = floatArray[vertexOffset + i] * scale + deformVertices[i];
-                const y = floatArray[vertexOffset + i + 1] * scale + deformVertices[i + 1];
-                const vertex = vertices[i / 2];
-
-                if (isSurface) {
-                    // @ts-ignore
-                    const matrix = (this._parent as Surface)._getGlobalTransformMatrix(x, y);
-                    vertex.set(
-                        matrix.a * x + matrix.c * y + matrix.tx,
-                        matrix.b * x + matrix.d * y + matrix.ty,
-                        0.0
-                    );
-                }
-                else {
-                    vertex.set(
-                        x,
-                        y,
-                        0.0
-                    );
-                }
-            }
-            meshDisplay.geometry = geometry.toBufferGeometry();
-            meshDisplay.geometry.attributes.position.needsUpdate = true;
-            meshDisplay.geometry.computeBoundingBox();
-            this._clearGeometry(geometry);
+            return;
         }
+
+        if (!hasDeform) {
+            return;
+        }
+
+        console.log("_updateMesh B")
+        const isSurface = (this._parent as any)._boneData.type !== BoneType.Bone;
+        const data = geometryData.data;
+        const intArray = (data as any).intArray;
+        const floatArray = (data as any).floatArray;
+        const vertexCount = intArray[geometryData.offset + BinaryOffset.GeometryVertexCount];
+        let vertexOffset = intArray[geometryData.offset + BinaryOffset.GeometryFloatOffset];
+
+        if (vertexOffset < 0) {
+            vertexOffset += 65536; // Fixed out of bounds bug. 
+        }
+
+        const _geometry = new Geometry().fromBufferGeometry(meshDisplay.geometry);
+        const _vertices = _geometry.vertices;
+
+        for (let i = 0, l = vertexCount * 2; i < l; i += 2) {
+            const x = floatArray[vertexOffset + i] * scale + deformVertices[i];
+            const y = floatArray[vertexOffset + i + 1] * scale + deformVertices[i + 1];
+            const vertex = _vertices[i / 2];
+
+            if (isSurface) {
+                // @ts-ignore
+                const matrix = (this._parent as Surface)._getGlobalTransformMatrix(x, y);
+                vertex.set(
+                    matrix.a * x + matrix.c * y + matrix.tx,
+                    matrix.b * x + matrix.d * y + matrix.ty,
+                    0.0
+                );
+            }
+            else {
+                vertex.set(
+                    x,
+                    y,
+                    0.0
+                );
+            }
+        }
+        meshDisplay.geometry = _geometry.toBufferGeometry();
+        meshDisplay.geometry.attributes.position.needsUpdate = true;
+        meshDisplay.geometry.computeBoundingBox();
+        this._clearGeometry(_geometry);
+
     }
 
     protected _updateTransform(): void {
