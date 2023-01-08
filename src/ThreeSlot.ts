@@ -1,4 +1,4 @@
-import { AdditiveBlending, BufferAttribute, MeshBasicMaterial } from 'three';
+import { AdditiveBlending, BufferAttribute, MeshBasicMaterial, Vector2, Vector3 } from 'three';
 import { Geometry, Face3 } from 'three/examples/jsm/deprecated/Geometry';
 import {
     Slot, GeometryData, DisplayFrame, BinaryOffset, BlendMode, BoneType
@@ -320,58 +320,56 @@ export class ThreeSlot extends Slot {
             const scale = textureAtlasData.scale * this._armature._armatureData.scale;
             const rawUVs = ThreeSlot.RAW_UVS;
             const rawIndices = ThreeSlot.RAW_INDICES;
-            const uvs = new Array<THREE.Vector2>();
+            const vertices: Vector3[] = [];
+            const uvs: Vector2[] = [];
 
             for (let i = 0; i < 4; ++i) {
                 const iD = i * 2;
-                const vertex = ThreeFactory.create(ThreeFactory.POOL_TYPE_VECTOR3) as THREE.Vector3;
-                const uv = ThreeFactory.create(ThreeFactory.POOL_TYPE_VECTOR2) as THREE.Vector2;
 
-                vertices.push(vertex);
-                uvs.push(uv);
-                uv.set(
+                const uv = new Vector2(
                     rawUVs[iD],
-                    rawUVs[iD + 1]
-                );
+                    rawUVs[iD + 1]);
 
-                vertex.set(
+                const vertex = new Vector3(
                     (uv.x * textureWidth * scale) - this._pivotX,
                     (uv.y * textureHeight * scale) - this._pivotY,
                     0.0
                 );
+
+                vertices.push(vertex);
+                uvs.push(uv);
 
                 if (textureData.rotated) {
                     uv.set(
                         (textureX + (1.0 - uv.y) * textureWidth) / textureAtlasWidth,
                         (textureY + uv.x * textureHeight) / textureAtlasHeight
                     );
+                    continue;
                 }
-                else {
-                    uv.set(
-                        (textureX + uv.x * textureWidth) / textureAtlasWidth,
-                        1.0 - (textureY + uv.y * textureHeight) / textureAtlasHeight
-                    );
-                }
+
+                uv.set(
+                    (textureX + uv.x * textureWidth) / textureAtlasWidth,
+                    1.0 - (textureY + uv.y * textureHeight) / textureAtlasHeight
+                );
             }
 
+            const indices: number[] = [];
             for (let i = 0; i < 2; ++i) {
                 const iT = i * 3;
-                const face3 = ThreeFactory.create(ThreeFactory.POOL_TYPE_FACE3) as Face3;
-                const faceUVs: Array<THREE.Vector2> = [];
 
-                faces.push(face3);
-                faceVertexUVs.push(faceUVs);
-
-                face3.a = rawIndices[iT];
-                face3.b = rawIndices[iT + 1];
-                face3.c = rawIndices[iT + 2];
-
-                faceUVs[0] = uvs[face3.a];
-                faceUVs[1] = uvs[face3.b];
-                faceUVs[2] = uvs[face3.c];
+                indices.push(
+                    rawIndices[iT],
+                    rawIndices[iT + 1],
+                    rawIndices[iT + 2]);
             }
 
-            meshDisplay.geometry = geometry.toBufferGeometry();
+            const _vertices = vertices.map(v => v.toArray()).flat();
+            const _uvs = uvs.map(v => v.toArray()).flat();
+
+            meshDisplay.geometry.setAttribute('position', new BufferAttribute(new Float32Array(_vertices), 3));
+            meshDisplay.geometry.setAttribute('uv', new BufferAttribute(new Float32Array(_uvs), 2));
+            meshDisplay.geometry.setIndex(indices);
+
             meshDisplay.geometry.attributes.position.needsUpdate = true;
             meshDisplay.geometry.attributes.uv.needsUpdate = true;
             meshDisplay.geometry.computeBoundingBox();
