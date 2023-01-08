@@ -303,10 +303,6 @@ export class ThreeSlot extends Slot {
             geometry.fromBufferGeometry(meshDisplay.geometry);
         }
 
-        const vertices = geometry.vertices;
-        const faces = geometry.faces;
-        const faceVertexUVs = geometry.faceVertexUvs[0];
-
         if (this._geometryData === null) {
             console.log('_updateFrame A');
             if (this._armature === null) {
@@ -419,63 +415,58 @@ export class ThreeSlot extends Slot {
         }
 
         const scale = this._armature._armatureData.scale;
-        const uvs = new Array<THREE.Vector2>();
+        const vertices: Vector3[] = [];
+        const uvs: Vector2[] = [];
 
         for (let i = 0, l = vertexCount; i < l; ++i) {
             let iD = i * 2
-            const vertex = ThreeFactory.create(ThreeFactory.POOL_TYPE_VECTOR3) as THREE.Vector3;
-            const uv = ThreeFactory.create(ThreeFactory.POOL_TYPE_VECTOR2) as THREE.Vector2;
+            const vertex = new Vector3(
+                floatArray[vertexOffset + iD] * scale,
+                floatArray[vertexOffset + iD + 1] * scale,
+                0.0);
+
+            const uv = new Vector2(
+                floatArray[uvOffset + iD],
+                floatArray[uvOffset + iD + 1]);
 
             vertices.push(vertex);
             uvs.push(uv);
-            uv.set(
-                floatArray[uvOffset + iD],
-                floatArray[uvOffset + iD + 1]
-            );
-            vertex.set(
-                floatArray[vertexOffset + iD] * scale,
-                floatArray[vertexOffset + iD + 1] * scale,
-                0.0
-            );
 
             if (textureData.rotated) {
                 uv.set(
                     (textureX + (1.0 - uv.y) * textureWidth) / textureAtlasWidth,
                     (textureY + uv.x * textureHeight) / textureAtlasHeight
                 );
+                continue;
             }
-            else {
-                uv.set(
-                    (textureX + uv.x * textureWidth) / textureAtlasWidth,
-                    1.0 - (textureY + uv.y * textureHeight) / textureAtlasHeight
-                );
-            }
+
+            uv.set(
+                (textureX + uv.x * textureWidth) / textureAtlasWidth,
+                1.0 - (textureY + uv.y * textureHeight) / textureAtlasHeight
+            );
         }
 
+        const indices: number[] = [];
         for (let i = 0; i < triangleCount; ++i) {
             const iT = i * 3;
-            const face3 = ThreeFactory.create(ThreeFactory.POOL_TYPE_FACE3) as Face3;
-            const faceUVs: Array<THREE.Vector2> = [];
-
-            faces.push(face3);
-            faceVertexUVs.push(faceUVs);
-
-            face3.a = intArray[indexOffset + iT];
-            face3.b = intArray[indexOffset + iT + 1];
-            face3.c = intArray[indexOffset + iT + 2];
-
-            faceUVs[0] = uvs[face3.a];
-            faceUVs[1] = uvs[face3.b];
-            faceUVs[2] = uvs[face3.c];
+            indices.push(
+                intArray[indexOffset + iT],
+                intArray[indexOffset + iT + 1],
+                intArray[indexOffset + iT + 2]);
         }
 
-        meshDisplay.geometry = geometry.toBufferGeometry();
+        const _vertices = vertices.map(v => v.toArray()).flat();
+        const _uvs = uvs.map(v => v.toArray()).flat();
+
+        meshDisplay.geometry.setAttribute('position', new BufferAttribute(new Float32Array(_vertices), 3));
+        meshDisplay.geometry.setAttribute('uv', new BufferAttribute(new Float32Array(_uvs), 2));
+        meshDisplay.geometry.setIndex(indices);
+
         meshDisplay.geometry.attributes.position.needsUpdate = true;
         meshDisplay.geometry.attributes.uv.needsUpdate = true;
         meshDisplay.geometry.computeBoundingBox();
 
         this._clearGeometry(geometry);
-
 
         if (this._material !== null) {
             this._material.copy(textureAtlasData.material);
