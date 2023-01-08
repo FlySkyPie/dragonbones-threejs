@@ -498,14 +498,6 @@ export class ThreeSlot extends Slot {
         const hasDeform = deformVertices.length > 0 && geometryData.inheritDeform;
         const meshDisplay = this._renderDisplay as THREE.Mesh;
 
-        const geometry = new Geometry();
-        const position = meshDisplay.geometry.getAttribute('position');
-        if (position !== undefined) {
-            geometry.fromBufferGeometry(meshDisplay.geometry);
-        }
-
-        const vertices = geometry.vertices;
-
         if (weightData !== null) {
             const data = geometryData.data;
             if (data === null) {
@@ -528,8 +520,7 @@ export class ThreeSlot extends Slot {
                 weightFloatOffset += 65536; // Fixed out of bounds bug. 
             }
 
-            //const vertices = new Float32Array(meshDisplay.geometry.getAttribute("position").array);
-
+            const positions = Array.from(meshDisplay.geometry.getAttribute('position').array);
             let iB = weightData.offset + BinaryOffset.WeigthBoneIndices + bones.length,
                 iV = weightFloatOffset,
                 iF = 0;
@@ -557,31 +548,14 @@ export class ThreeSlot extends Slot {
                     }
                 }
 
-                // vertices[i] = xG;
-                // vertices[i + 1] = yG;
-                // vertices[i + 2] = 0.0;
-
-                const vertex = vertices[i];
-                if (vertex === undefined) {
-                    continue;
-                }
-                vertex.set(
-                    xG,
-                    yG,
-                    0.0
-                );
+                positions[3 * i] = xG;
+                positions[3 * i + 1] = yG;
+                positions[3 * i + 2] = 0.0;
             }
 
-            meshDisplay.geometry = geometry.toBufferGeometry();
-            meshDisplay.geometry.attributes.position.needsUpdate = true;
-            if (meshDisplay.geometry.attributes.uv) {
-                meshDisplay.geometry.attributes.uv.needsUpdate = true;
-            }
+            meshDisplay.geometry.setAttribute('position', new BufferAttribute(new Float32Array(positions), 3));
+             meshDisplay.geometry.attributes.position.needsUpdate = true;
             meshDisplay.geometry.computeBoundingBox();
-
-            //meshDisplay.geometry.setAttribute('position', new BufferAttribute(vertices, 3));
-            //meshDisplay.geometry.attributes.position.needsUpdate = true;
-            //meshDisplay.geometry.computeBoundingBox();
 
             return;
         }
