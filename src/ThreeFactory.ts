@@ -1,4 +1,5 @@
-import { DoubleSide, Face3, Geometry, Mesh, MeshBasicMaterial, Sprite, SpriteMaterial, Vector2, Vector3 } from 'three';
+import { BufferGeometry, DoubleSide, Mesh, MeshBasicMaterial, Sprite, SpriteMaterial, Vector2, Vector3 } from 'three';
+import { Face3 } from 'three/examples/jsm/deprecated/Geometry';
 import {
     Armature, DragonBones, BaseFactory, DataParser,
     BaseObject, BuildArmaturePackage, Slot, SlotData, TextureAtlasData
@@ -78,8 +79,8 @@ export class ThreeFactory extends BaseFactory {
     /**
      * @private
      */
-    public static release(object: THREE.Vector3 | THREE.Face3 | THREE.Vector2, type: string): void {
-        let pool: Array<THREE.Vector2 | THREE.Vector3 | THREE.Face3>;
+    public static release(object: THREE.Vector3 | Face3 | THREE.Vector2, type: string): void {
+        let pool: Array<THREE.Vector2 | THREE.Vector3 | Face3>;
         if (type in ThreeFactory._pools) {
             pool = ThreeFactory._pools[type];
         } else {
@@ -174,7 +175,7 @@ export class ThreeFactory extends BaseFactory {
         armature;
 
         const slot = BaseObject.borrowObject(ThreeSlot);
-        const geometry = new Geometry();
+        const geometry = new BufferGeometry();
         const rawDisplay = new Mesh(geometry, ThreeFactory._emptyMaterial);
 
         slot.init(

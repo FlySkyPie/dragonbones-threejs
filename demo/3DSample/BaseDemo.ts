@@ -1,7 +1,7 @@
 import {
-    DefaultLoadingManager, DoubleSide, FileLoader, Group, Mesh, MeshBasicMaterial, 
+    DefaultLoadingManager, DoubleSide, FileLoader, Group, Mesh, MeshBasicMaterial,
     PerspectiveCamera, PlaneGeometry, RepeatWrapping,
-    Scene, Texture, TextureLoader, WebGLRenderer
+    Scene, Texture, TextureLoader, Vector2, WebGLRenderer
 } from 'three';
 import { ThreeFactory } from '@dragonbones-threejs';
 
@@ -108,10 +108,10 @@ export abstract class BaseDemo extends Group {
     // }
 
     public get stageWidth(): number {
-        return this._renderer.getSize().width;
+        return this._renderer.getSize(new Vector2()).width;
     }
 
     public get stageHeight(): number {
-        return this._renderer.getSize().height;
+        return this._renderer.getSize(new Vector2()).height;
     }
 }

@@ -1,5 +1,5 @@
 import * as THREE from 'three';
-
+import { DoubleSide, Mesh, MeshBasicMaterial, PlaneGeometry, Vector2 } from 'three';
 import { ThreeFactory } from '@dragonbones-threejs';
 
 import backgroundPng from '../assets/background.png';
@@ -11,7 +11,7 @@ export abstract class BaseDemo extends THREE.Group {
     private readonly _camera: THREE.OrthographicCamera = new THREE.OrthographicCamera(-0.5, 0.5, -0.5, 0.5, -1000, 1000);
     private readonly _renderer: THREE.WebGLRenderer = new THREE.WebGLRenderer({ antialias: true });
 
-    private readonly _background: THREE.Sprite = new THREE.Sprite();
+    private readonly _background: Mesh = new Mesh(new PlaneGeometry(1, 1));
     protected readonly _resources: string[] = [BaseDemo.BACKGROUND_URL];
     protected readonly _loadedResources: { [key: string]: any | ArrayBuffer | THREE.Texture } = {};
 
@@ -73,7 +73,7 @@ export abstract class BaseDemo extends THREE.Group {
             const backgroundTexture = this._loadedResources[BaseDemo.BACKGROUND_URL] as THREE.Texture;
             backgroundTexture.wrapS = THREE.RepeatWrapping;
             backgroundTexture.wrapT = THREE.RepeatWrapping;
-            this._background.material = new THREE.SpriteMaterial({ map: backgroundTexture });
+            this._background.material = new MeshBasicMaterial({ map: backgroundTexture,side: DoubleSide  });
             this._background.scale.set(backgroundTexture.image.width, backgroundTexture.image.height, 1.0);
             this._background.position.z = -10;
             this.add(this._background);
@@ -96,10 +96,10 @@ export abstract class BaseDemo extends THREE.Group {
     // }
 
     public get stageWidth(): number {
-        return this._renderer.getSize().width;
+        return this._renderer.getSize(new Vector2()).width;
     }
 
     public get stageHeight(): number {
-        return this._renderer.getSize().height;
+        return this._renderer.getSize(new Vector2()).height;
     }
 }

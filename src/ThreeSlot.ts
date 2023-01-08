@@ -1,4 +1,5 @@
-import { AdditiveBlending, MeshBasicMaterial } from 'three';
+import { AdditiveBlending, BufferAttribute, MeshBasicMaterial } from 'three';
+import { Geometry, Face3 } from 'three/examples/jsm/deprecated/Geometry';
 import {
     Slot, GeometryData, DisplayFrame, BinaryOffset, BlendMode, BoneType
 } from '@flyskypie/dragonbones-js';
@@ -19,15 +20,6 @@ import { ThreeTextureAtlasData, ThreeTextureData } from './ThreeTextureAtlasData
  * @language zh_CN
  */
 export class ThreeSlot extends Slot {
-    //private _armature: any;
-    //private _zOrder: number;
-    //private _colorTransform: any;
-    //private _globalAlpha: any;
-    //private _geometryData: GeometryData;
-    //private _pivotX: number;
-    //private _pivotY: number;
-    //private _displayFrame: DisplayFrame;
-    //private _geometryBones: any;
     public static toString(): string {
         return "[class ThreeSlot]";
     }
@@ -50,7 +42,7 @@ export class ThreeSlot extends Slot {
         this._material = null;
     }
 
-    private _clearGeometry(geometry: THREE.Geometry): void {
+    private _clearGeometry(geometry: Geometry): void {
         const vertices = geometry.vertices;
         const faces = geometry.faces;
         const faceVertexUVs = geometry.faceVertexUvs[0];
@@ -272,6 +264,9 @@ export class ThreeSlot extends Slot {
         // TODO child armature.
     }
 
+    /**
+     * @todo Re-implementement with BufferGeometry.
+     */
     protected _updateFrame(): void {
         const textureData = this._textureData as (ThreeTextureData | null);
         const meshDisplay = this._renderDisplay as THREE.Mesh;
@@ -291,12 +286,16 @@ export class ThreeSlot extends Slot {
                 const textureY = textureData.region.y;
                 const textureWidth = textureData.region.width;
                 const textureHeight = textureData.region.height;
-                const geometry = meshDisplay.geometry as THREE.Geometry;
+                const geometry = new Geometry();
+
+                const position = meshDisplay.geometry.getAttribute('position');
+                if (position !== undefined) {
+                    geometry.fromBufferGeometry(meshDisplay.geometry);
+                }
+
                 const vertices = geometry.vertices;
                 const faces = geometry.faces;
                 const faceVertexUVs = geometry.faceVertexUvs[0];
-
-                this._clearGeometry(geometry);
 
                 if (this._geometryData !== null) { // Mesh.
                     const data = this._geometryData.data;
@@ -357,7 +356,7 @@ export class ThreeSlot extends Slot {
 
                     for (let i = 0; i < triangleCount; ++i) {
                         const iT = i * 3;
-                        const face3 = ThreeFactory.create(ThreeFactory.POOL_TYPE_FACE3) as THREE.Face3;
+                        const face3 = ThreeFactory.create(ThreeFactory.POOL_TYPE_FACE3) as Face3;
                         const faceUVs: Array<THREE.Vector2> = [];
 
                         faces.push(face3);
@@ -372,9 +371,13 @@ export class ThreeSlot extends Slot {
                         faceUVs[2] = uvs[face3.c];
                     }
 
-                    // this._clearMesh(geometry, vertexCount, triangleCount);
-                }
-                else { // Normal texture.
+                    meshDisplay.geometry = geometry.toBufferGeometry();
+                    meshDisplay.geometry.attributes.position.needsUpdate = true;
+                    meshDisplay.geometry.attributes.uv.needsUpdate = true;
+                    meshDisplay.geometry.computeBoundingBox();
+
+                    this._clearGeometry(geometry);
+                } else { // Normal texture.
                     if (this._armature === null) {
                         throw new Error(`this._armature is null.`);
                     }
@@ -422,7 +425,7 @@ export class ThreeSlot extends Slot {
 
                     for (let i = 0; i < 2; ++i) {
                         const iT = i * 3;
-                        const face3 = ThreeFactory.create(ThreeFactory.POOL_TYPE_FACE3) as THREE.Face3;
+                        const face3 = ThreeFactory.create(ThreeFactory.POOL_TYPE_FACE3) as Face3;
                         const faceUVs: Array<THREE.Vector2> = [];
 
                         faces.push(face3);
@@ -436,6 +439,11 @@ export class ThreeSlot extends Slot {
                         faceUVs[1] = uvs[face3.b];
                         faceUVs[2] = uvs[face3.c];
                     }
+
+                    meshDisplay.geometry = geometry.toBufferGeometry();
+                    meshDisplay.geometry.attributes.position.needsUpdate = true;
+                    meshDisplay.geometry.attributes.uv.needsUpdate = true;
+                    meshDisplay.geometry.computeBoundingBox();
                 }
 
                 if (this._material !== null) {
@@ -454,6 +462,7 @@ export class ThreeSlot extends Slot {
     }
 
     protected _updateMesh(): void {
+
         if (this._armature === null) {
             throw new Error(`this._armature is null.`);
         }
@@ -470,8 +479,16 @@ export class ThreeSlot extends Slot {
 
         const hasDeform = deformVertices.length > 0 && geometryData.inheritDeform;
         const meshDisplay = this._renderDisplay as THREE.Mesh;
-        const geometry = meshDisplay.geometry as THREE.Geometry;
+
+        const geometry = new Geometry();
+        const position = meshDisplay.geometry.getAttribute('position');
+        if (position !== undefined) {
+            geometry.fromBufferGeometry(meshDisplay.geometry);
+        }
+
         const vertices = geometry.vertices;
+        const faces = geometry.faces;
+
 
         if (weightData !== null) {
             const data = geometryData.data;
@@ -483,6 +500,8 @@ export class ThreeSlot extends Slot {
             if (weightFloatOffset < 0) {
                 weightFloatOffset += 65536; // Fixed out of bounds bug. 
             }
+
+            //const vertices = new Float32Array(meshDisplay.geometry.getAttribute("position").array);
 
             for (
                 let i = 0, iB = weightData.offset + BinaryOffset.WeigthBoneIndices + bones.length, iV = weightFloatOffset, iF = 0;
@@ -512,6 +531,10 @@ export class ThreeSlot extends Slot {
                     }
                 }
 
+                // vertices[i] = xG;
+                // vertices[i + 1] = yG;
+                // vertices[i + 2] = 0.0;
+
                 const vertex = vertices[i];
                 vertex.set(
                     xG,
@@ -519,9 +542,17 @@ export class ThreeSlot extends Slot {
                     0.0
                 );
             }
-            geometry.verticesNeedUpdate = true;
-        }
-        else if (hasDeform) {
+
+            meshDisplay.geometry = geometry.toBufferGeometry();
+            meshDisplay.geometry.attributes.position.needsUpdate = true;
+            meshDisplay.geometry.attributes.uv.needsUpdate = true;
+            meshDisplay.geometry.computeBoundingBox();
+
+            //meshDisplay.geometry.setAttribute('position', new BufferAttribute(vertices, 3));
+            //meshDisplay.geometry.attributes.position.needsUpdate = true;
+            //meshDisplay.geometry.computeBoundingBox();
+        } else if (hasDeform) {
+            console.log("_updateMesh B")
             const isSurface = (this._parent as any)._boneData.type !== BoneType.Bone;
             const data = geometryData.data;
             const intArray = (data as any).intArray;
@@ -532,6 +563,9 @@ export class ThreeSlot extends Slot {
             if (vertexOffset < 0) {
                 vertexOffset += 65536; // Fixed out of bounds bug. 
             }
+
+            const geometry = new Geometry().fromBufferGeometry(meshDisplay.geometry);
+            const vertices = geometry.vertices;
 
             for (let i = 0, l = vertexCount * 2; i < l; i += 2) {
                 const x = floatArray[vertexOffset + i] * scale + deformVertices[i];
@@ -555,7 +589,10 @@ export class ThreeSlot extends Slot {
                     );
                 }
             }
-            geometry.verticesNeedUpdate = true;
+            meshDisplay.geometry = geometry.toBufferGeometry();
+            meshDisplay.geometry.attributes.position.needsUpdate = true;
+            meshDisplay.geometry.computeBoundingBox();
+            this._clearGeometry(geometry);
         }
     }
 
@@ -572,7 +609,7 @@ export class ThreeSlot extends Slot {
         displayMatrixElements[5] = globalTransformMatrix.d;
         displayMatrixElements[12] = globalTransformMatrix.tx;
         displayMatrixElements[13] = globalTransformMatrix.ty;
-        displayMatrixElements[14] = this._zOrder;
+        displayMatrixElements[14] = this._zOrder * 0.1;
         this._renderDisplay.matrixWorldNeedsUpdate = true;
     }
 
