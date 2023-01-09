@@ -304,7 +304,6 @@ export class ThreeSlot extends Slot {
         }
 
         if (this._geometryData === null) {
-            console.log('_updateFrame A');
             if (this._armature === null) {
                 throw new Error(`this._armature is null.`);
             }
@@ -378,8 +377,7 @@ export class ThreeSlot extends Slot {
             this._visibleDirty = true;
             return;
         }
-        //return;
-        console.log('_updateFrame B');
+
         // Mesh.
         const data = this._geometryData.data;
         if (data === null) {
@@ -550,11 +548,11 @@ export class ThreeSlot extends Slot {
 
                 positions[3 * i] = xG;
                 positions[3 * i + 1] = yG;
-                positions[3 * i + 2] = 0.0;
+                positions[3 * i + 2] = this._zOrder * 0.1;
             }
 
             meshDisplay.geometry.setAttribute('position', new BufferAttribute(new Float32Array(positions), 3));
-             meshDisplay.geometry.attributes.position.needsUpdate = true;
+            meshDisplay.geometry.attributes.position.needsUpdate = true;
             meshDisplay.geometry.computeBoundingBox();
 
             return;
@@ -564,7 +562,6 @@ export class ThreeSlot extends Slot {
             return;
         }
 
-        console.log("_updateMesh B")
         const isSurface = (this._parent as any)._boneData.type !== BoneType.Bone;
         const data = geometryData.data;
         const intArray = (data as any).intArray;
