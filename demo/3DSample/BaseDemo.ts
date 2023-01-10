@@ -3,11 +3,10 @@ import {
     PerspectiveCamera, PlaneGeometry, RepeatWrapping,
     Scene, Texture, TextureLoader, Vector2, WebGLRenderer
 } from 'three';
+import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls';
 import { ThreeFactory } from '@dragonbones-threejs';
 
 import backgroundPng from '../assets/background.png';
-
-import { OrbitControls } from './OrbitControls.js';
 
 export abstract class BaseDemo extends Group {
     private static readonly BACKGROUND_URL: string = backgroundPng;

@@ -1,5 +1,5 @@
-import { BufferGeometry, DoubleSide, Mesh, MeshBasicMaterial, Sprite, SpriteMaterial, Vector2, Vector3 } from 'three';
-import { Face3 } from 'three/examples/jsm/deprecated/Geometry';
+import { BufferGeometry, DoubleSide, Mesh, MeshBasicMaterial, Sprite, SpriteMaterial, } from 'three';
+
 import {
     Armature, DragonBones, BaseFactory, DataParser,
     BaseObject, BuildArmaturePackage, Slot, SlotData, TextureAtlasData
@@ -20,24 +20,11 @@ import { ThreeSlot } from './ThreeSlot';
  * @language zh_CN
  */
 export class ThreeFactory extends BaseFactory {
-    /**
-     * @private
-     */
-    public static readonly POOL_TYPE_VECTOR2: string = "POOL_TYPE_VECTOR2";
-    /**
-     * @private
-     */
-    public static readonly POOL_TYPE_VECTOR3: string = "POOL_TYPE_VECTOR3";
-    /**
-     * @private
-     */
-    public static readonly POOL_TYPE_FACE3: string = "POOL_TYPE_FACE3";
-
     private static readonly _emptyMaterial: THREE.Material = new MeshBasicMaterial();
-    private static readonly _pools: { [key: string]: Array<any> } = {};
+
     private static _dragonBonesInstance: DragonBones | null = null;
+
     private static _factory: ThreeFactory | null = null;
-    //private static _eventManager: ThreeArmatureDisplay | null = null;
 
     private static _createDragonBones(): DragonBones {
         const eventManager = new ThreeArmatureDisplay();
@@ -47,54 +34,8 @@ export class ThreeFactory extends BaseFactory {
 
         return dragonBonesInstance;
     }
-    /**
-     * @private
-     */
-    public static create<T>(type: string): T {
-        let pool: Array<any>;
-        if (type in ThreeFactory._pools) {
-            pool = ThreeFactory._pools[type];
-        }
-        else {
-            pool = ThreeFactory._pools[type] = [];
-        }
 
-        if (pool.length > 0) {
-            return pool.pop();
-        }
 
-        switch (type) {
-            case ThreeFactory.POOL_TYPE_VECTOR2:
-                return new Vector2() as any;
-
-            case ThreeFactory.POOL_TYPE_VECTOR3:
-                return new Vector3() as any;
-
-            case ThreeFactory.POOL_TYPE_FACE3:
-                return new Face3(0, 1, 2) as any;
-        }
-
-        throw new Error();
-    }
-    /**
-     * @private
-     */
-    public static release(object: THREE.Vector3 | Face3 | THREE.Vector2, type: string): void {
-        let pool: Array<THREE.Vector2 | THREE.Vector3 | Face3>;
-        if (type in ThreeFactory._pools) {
-            pool = ThreeFactory._pools[type];
-        } else {
-            pool = ThreeFactory._pools[type] = [];
-        }
-
-        if (pool.indexOf(object) < 0) {
-            pool.push(object);
-        } else {
-            pool.push(object.clone());
-            //console.log(pool, object, type)
-            //throw new Error();
-        }
-    }
     /**
      * - A global factory instance that can be used directly.
      * @version DragonBones 4.7
