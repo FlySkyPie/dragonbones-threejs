@@ -1,11 +1,8 @@
 import { AdditiveBlending, BufferAttribute, MeshBasicMaterial, Vector2, Vector3 } from 'three';
-import { Geometry, Face3 } from 'three/examples/jsm/deprecated/Geometry';
 import {
     Slot, GeometryData, DisplayFrame, BinaryOffset, BlendMode, BoneType
 } from '@flyskypie/dragonbones-js';
 
-
-import { ThreeFactory } from './ThreeFactory';
 import { ThreeArmatureDisplay } from './ThreeArmatureDisplay';
 import { ThreeTextureAtlasData, ThreeTextureData } from './ThreeTextureAtlasData';
 
@@ -40,30 +37,6 @@ export class ThreeSlot extends Slot {
 
         this._renderDisplay = null;
         this._material = null;
-    }
-
-    private _clearGeometry(geometry: Geometry): void {
-        const vertices = geometry.vertices;
-        const faces = geometry.faces;
-        const faceVertexUVs = geometry.faceVertexUvs[0];
-
-        for (const vertex of vertices) {
-            ThreeFactory.release(vertex, ThreeFactory.POOL_TYPE_VECTOR3);
-        }
-
-        for (const face of faces) {
-            ThreeFactory.release(face, ThreeFactory.POOL_TYPE_FACE3);
-        }
-
-        for (const faceUVS of faceVertexUVs) {
-            for (const uv of faceUVS) {
-                ThreeFactory.release(uv, ThreeFactory.POOL_TYPE_VECTOR2);
-            }
-        }
-
-        vertices.length = 0;
-        faces.length = 0;
-        faceVertexUVs.length = 0;
     }
 
     protected _initDisplay(value: any, isRetain: boolean): void {
@@ -296,12 +269,6 @@ export class ThreeSlot extends Slot {
         const textureY = textureData.region.y;
         const textureWidth = textureData.region.width;
         const textureHeight = textureData.region.height;
-        const geometry = new Geometry();
-
-        const position = meshDisplay.geometry.getAttribute('position');
-        if (position !== undefined) {
-            geometry.fromBufferGeometry(meshDisplay.geometry);
-        }
 
         if (this._geometryData === null) {
             if (this._armature === null) {
@@ -464,8 +431,6 @@ export class ThreeSlot extends Slot {
         meshDisplay.geometry.attributes.uv.needsUpdate = true;
         meshDisplay.geometry.computeBoundingBox();
 
-        this._clearGeometry(geometry);
-
         if (this._material !== null) {
             this._material.copy(textureAtlasData.material);
         }
@@ -573,36 +538,30 @@ export class ThreeSlot extends Slot {
             vertexOffset += 65536; // Fixed out of bounds bug. 
         }
 
-        const _geometry = new Geometry().fromBufferGeometry(meshDisplay.geometry);
-        const _vertices = _geometry.vertices;
+        const positions = Array.from(meshDisplay.geometry.getAttribute('position').array);
 
-        for (let i = 0, l = vertexCount * 2; i < l; i += 2) {
+        for (let i = 0, l = vertexCount * 3; i < l; i += 3) {
             const x = floatArray[vertexOffset + i] * scale + deformVertices[i];
             const y = floatArray[vertexOffset + i + 1] * scale + deformVertices[i + 1];
-            const vertex = _vertices[i / 2];
+
 
             if (isSurface) {
                 // @ts-ignore
                 const matrix = (this._parent as Surface)._getGlobalTransformMatrix(x, y);
-                vertex.set(
-                    matrix.a * x + matrix.c * y + matrix.tx,
-                    matrix.b * x + matrix.d * y + matrix.ty,
-                    0.0
-                );
+                positions[i] = matrix.a * x + matrix.c * y + matrix.tx;
+                positions[i + 1] = matrix.b * x + matrix.d * y + matrix.ty;
+                positions[i + 2] = 0;
             }
             else {
-                vertex.set(
-                    x,
-                    y,
-                    0.0
-                );
+                positions[i] = x;
+                positions[i + 1] = y;
+                positions[i + 2] = 0;
             }
         }
-        meshDisplay.geometry = _geometry.toBufferGeometry();
+
+        meshDisplay.geometry.setAttribute('position', new BufferAttribute(new Float32Array(positions), 3));
         meshDisplay.geometry.attributes.position.needsUpdate = true;
         meshDisplay.geometry.computeBoundingBox();
-        this._clearGeometry(_geometry);
-
     }
 
     protected _updateTransform(): void {
