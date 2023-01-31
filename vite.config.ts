@@ -2,7 +2,7 @@ import path from "path";
 import { defineConfig } from "vite";
 import dts from 'vite-plugin-dts'
 
-export default defineConfig(({ command }) => {
+export default defineConfig(({ command, mode }) => {
   if (command === 'serve') {
     return {
       resolve: {
@@ -15,6 +15,27 @@ export default defineConfig(({ command }) => {
       },
     };
   }
+
+  if (mode === 'demo') {
+
+    return {
+      base: '',
+      resolve: {
+        alias: {
+          "@dragonbones-threejs": path.resolve(__dirname, "./src"),
+        },
+      },
+      build: {
+        outDir: path.resolve(__dirname, 'docs'),
+        assetsInlineLimit: 0,
+        rollupOptions: {
+          input: {
+            main: path.resolve(__dirname, "demo/ChibiSample/index.html"),
+          },
+        }
+      },
+    }
+  };
 
   return {
     publicDir: false,

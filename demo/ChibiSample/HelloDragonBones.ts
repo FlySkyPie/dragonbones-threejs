@@ -17,12 +17,9 @@ export class HelloDragonBones extends BaseDemo {
 
     protected _onStart(): void {
         const factory = ThreeFactory.factory;
-        // factory.parseDragonBonesData(this._pixiResource["resource/mecha_1002_101d_show/mecha_1002_101d_show_ske.json"].data);
         factory.parseDragonBonesData(this._loadedResources[skeJson]);
         factory.parseTextureAtlasData(this._loadedResources[texJson],
             this._loadedResources[texPng]);
-
-        console.log(this._loadedResources[texPng]);
 
         const armatureDisplay = factory.buildArmatureDisplay("Lyana");
 
