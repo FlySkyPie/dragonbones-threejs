@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Demo</title>
+  <style>
+    body {
+      margin: 0;
+    }
+
+    #info {
+      position: absolute;
+      top: 0px;
+      width: 100%;
+      padding: 10px;
+      box-sizing: border-box;
+      text-align: center;
+      -moz-user-select: none;
+      -webkit-user-select: none;
+      -ms-user-select: none;
+      user-select: none;
+      pointer-events: none;
+      z-index: 1;
+      /* TODO Solve this in HTML */
+    }
+
+    a,
+    button,
+    input,
+    select {
+      pointer-events: auto;
+    }
+  </style>
+</head>
+
+<body>
+  <div id="info">
+    <a href="https://threejs.org" target="_blank" rel="noopener">three.js</a> -
+    Chibi Demo
+    <br>
+    Character graphic by <a href="https://twitter.com/Pin_title" target="_blank" rel="noopener">ゆう</a>,
+    integration by <a href="https://github.com/FlySkyPie" target="_blank" rel="noopener">FlySkyPie</a>,
+    <a rel="license" href="http://creativecommons.org/licenses/by/3.0/tw/"><img alt="Creative Commons License"
+        style="border-width:0" src="https://i.creativecommons.org/l/by/3.0/tw/88x31.png" /></a>
+    <br />.
+  </div>
+  <script type="module" src="./main.ts"></script>
+</body>
+
+</html>
