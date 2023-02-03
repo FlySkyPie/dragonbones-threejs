@@ -5,19 +5,21 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Three.js - DragonBones - Chibi Demo</title>
-  <meta data-rh="true" property="og:type" content="website">
+  <meta name="twitter:card" content="summary_large_image">
+  <meta property="og:url" content="https://flyskypie.github.io/dragonbones-threejs/demo/ChibiSample/" />
+  <meta property="og:type" content="website">
+  <meta property="og:title" content="Three.js - DragonBones - Chibi Demo">
+  <meta property="og:image" content="https://i.imgur.com/j56bqMX.png">
   <meta property="og:description" content="Three.js demo of DragonBones with chibi character." />
-  <meta data-rh="true" property="article:author" content="https://github.com/FlySkyPie">
-  <meta data-rh="true" property="article:tag" content="three, three.js, chibi, DragonBones, animation">
-  <meta data-rh="true" property="og:image" content="https://i.imgur.com/j56bqMX.png">
+  <meta property="article:author" content="https://github.com/FlySkyPie">
+  <meta property="article:tag" content="three, three.js, chibi, DragonBones, animation">
   <style>
     body {
       margin: 0;
     }
 
-    #info {
+    .hud {
       position: absolute;
-      top: 0px;
       width: 100%;
       padding: 10px;
       box-sizing: border-box;
@@ -30,7 +32,18 @@
       z-index: 1;
       background-color: rgba(0, 0, 0, 0.5);
       color: #ffffff;
-      /* TODO Solve this in HTML */
+    }
+
+    #info {
+      top: 0px;
+    }
+
+    #gui {
+      bottom: 0px;
+    }
+
+    #gui a {
+      cursor: pointer;
     }
 
     a,
@@ -44,11 +57,11 @@
       color: #2983ff;
     }
   </style>
-  <script type="module" crossorigin src="../../assets/main-0d11fb5d.js"></script>
+  <script type="module" crossorigin src="../../assets/main-730a55e7.js"></script>
 </head>
 
 <body>
-  <div id="info">
+  <div id="info" class="hud">
     <a href="https://threejs.org" target="_blank" rel="noopener">three.js</a> -
     DragonBones - Chibi Demo
     <br>
@@ -56,6 +69,13 @@
     integration by <a href="https://github.com/FlySkyPie" target="_blank" rel="noopener">FlySkyPie</a>,
     <a rel="license" href="http://creativecommons.org/licenses/by/3.0/tw/"><img alt="Creative Commons License"
         style="border-width:0" src="https://i.creativecommons.org/l/by/3.0/tw/88x31.png" /></a>.
+  </div>
+  <div id="gui" class="hud">
+    [<a id="idle">Idle</a>]
+    -
+    [<a id="attack">Attack</a>]
+    -
+    [<a id="move">Move</a>]
   </div>
   
 </body>
