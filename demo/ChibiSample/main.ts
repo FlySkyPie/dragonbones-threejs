@@ -1,3 +1,3 @@
-import { HelloDragonBones } from './HelloDragonBones';
+import { ChibiDemo } from './ChibiDemo';
 
-new HelloDragonBones();
+new ChibiDemo();
